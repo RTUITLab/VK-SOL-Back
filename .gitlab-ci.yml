@@ -20,7 +20,7 @@ deploy:
   - ssh-keyscan $VIRTUAL_IP >> ~/.ssh/known_hosts
   - chmod 644 ~/.ssh/known_hosts
   script:
-  - ssh $VIRTUAL_LOGIN@$VIRTUAL_IP "cd VK_HACK/ && docker-compose pull && docker-compose up"
+  - ssh $VIRTUAL_LOGIN@$VIRTUAL_IP "cd VK_HACK/ && docker-compose pull && docker-compose up -d"
   artifacts:
     paths:
     - public
