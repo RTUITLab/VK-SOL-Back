@@ -290,7 +290,7 @@ async def create_new_event(event: Event):
 
 
 @app.get('/api/event', tags=['events'])
-def get_all_events(user_id: str | None = None) -> list[Event]:
+def get_all_events(user_id: str | None = None):
     result = []
     for event in db.events.find():
         event['_id'] = str(event['_id'])
@@ -310,6 +310,13 @@ def get_event_by_id(id: str):
 def add_to_white_list(id: str, user_id: str):
     result = db.events.find_one({'_id': ObjectId(id)})
     result['white_list'].append(user_id)
+    db.events.update_one({'_id': ObjectId(id)}, {'$set': {'white_list': result['white_list']}})
+
+
+@app.put('/api/event/{id}/deny/{user_id}', tags=['events'])
+def add_to_white_list(id: str, user_id: str):
+    result = db.events.find_one({'_id': ObjectId(id)})
+    result['white_list'].remove(user_id)
     db.events.update_one({'_id': ObjectId(id)}, {'$set': {'white_list': result['white_list']}})
 
 

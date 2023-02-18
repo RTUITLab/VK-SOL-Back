@@ -3,7 +3,7 @@ from pydantic import BaseModel
 
 
 class Event(BaseModel):
-    _id: None | ObjectId | str
+    _id: str | None
     name: str
     date: str
     place: str
