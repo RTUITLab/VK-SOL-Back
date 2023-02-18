@@ -172,6 +172,24 @@ async def saveData(request: Request, db_name="files_meta"):
     post_id = posts.insert_one(item).inserted_id
     return {"name": str(post_id)}
 
+@app.put("/api/putData")
+async def putData(request: Request, db_name="files_meta"):
+    return "comming soon"
+
+@app.delete("/api/delData")
+async def delData(request: Request, db_name="files_meta"):
+    item = await request.json()
+    posts = db[db_name]
+    if "id_" in item:
+        item["id_"] = ObjectId(item["id_"])
+    posts.delete_one(item)
+    arr = []
+    element = posts.find({})
+    for document in element:
+        print(document)
+        document["_id"] = str(document["_id"])
+        arr.append(document)
+    return {"size": len(arr), 'data': arr}
 
 @app.get("/api/unPin")
 async def unPin(id):
@@ -182,7 +200,7 @@ async def unPin(id):
 @app.get("/api/getData")
 async def getData(db_name="files_meta", id=None):
     if id == None:
-        posts = db['files_meta']
+        posts = db[db_name]
         arr = []
         element = posts.find({})
         for document in element:
