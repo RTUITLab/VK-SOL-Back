@@ -1,7 +1,7 @@
 from fastapi import FastAPI, status, Request, Body, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-from models.Event import Event
+from models.event import Event
 from models.ticket import Ticket
 from pinata import Pinata
 import requests
@@ -360,6 +360,7 @@ def get_tickets(user_id: str | None = None):
 
 @app.post('/api/ticket', tags=['tickets'])
 def create_ticket(ticket: Ticket):
+    ticket.for_sell = False
     event = db.events.find_one({'_id': ObjectId(ticket.event_id)})
     if event['minted'] >= event['amount']:
         return HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
@@ -382,3 +383,8 @@ def create_ticket(ticket: Ticket):
     f.close()
 
     db.events.find_one_and_update({'_id': ObjectId(ticket.event_id)}, {'$set': {"minted": event['minted'] + 1}})
+
+
+@app.put('/api/ticket/{id}/sell/{status}', tags=['tickets'])
+def set_ticket_for_sell(id: str, status: bool = True):
+    db.events.find_one_and_update({'_id': ObjectId(id)}, {'$set': {"for_sell": status}})
