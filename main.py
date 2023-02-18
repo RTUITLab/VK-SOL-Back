@@ -1,5 +1,4 @@
-import uvicorn
-from fastapi import FastAPI, File, UploadFile, status, Header, Request, Depends, HTTPException
+from fastapi import FastAPI, status, Request, Body, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from models.Event import Event
@@ -306,3 +305,16 @@ def get_event_by_id(id: str):
     return result
 
 
+@app.post('/api/auth', tags=['auth'], status_code=status.HTTP_201_CREATED)
+def create_auth_state(state: str = Body(), address: str = Body()):
+    item = {'state': state, 'address': address}
+    db.state.insert_one(item).inserted_id
+
+
+@app.get('/api/auth/{state}', tags=['auth'])
+def get_address(state: str):
+    result = db.state.find_one_and_delete({'state': state})
+    if result is not None:
+        return {'address': result['address']}
+    else:
+        return HTTPException(status_code=404)
