@@ -371,7 +371,7 @@ def create_ticket(ticket: Ticket):
     if db.events.find_one({'user_id': ticket.user_id, 'event_id': ObjectId(event['_id'])}) is not None:
         return HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
 
-    os.system(f'sh -c "cd {back_path}/{ticket.event_id} && sugar mint"')
+    os.system(f'sh -c "cd {back_path}/{ticket.event_id} && sugar mint --receiver {ticket.user_id}"')
 
     f = open(f'{back_path}/{ticket.event_id}/cache.json')
     data = json.load(f)
