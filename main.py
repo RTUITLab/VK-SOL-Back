@@ -180,8 +180,8 @@ async def putData(request: Request, db_name="files_meta"):
 async def delData(request: Request, db_name="files_meta"):
     item = await request.json()
     posts = db[db_name]
-    if "id_" in item:
-        item["id_"] = ObjectId(item["id_"])
+    if "_id" in item:
+        item["_id"] = ObjectId(item["_id"])
     posts.delete_one(item)
     arr = []
     element = posts.find({})
