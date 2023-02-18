@@ -305,6 +305,13 @@ def get_event_by_id(id: str):
     return result
 
 
+@app.put('/api/event/{id}/allow/{user_id}', tags=['events'])
+def add_to_white_list(id: str, user_id: str):
+    result = db.events.find_one({'_id': ObjectId(id)})
+    result['white_list'].append(user_id)
+    db.events.update_one({'_id': ObjectId(id)}, {'$set': {'white_list': result['white_list']}})
+
+
 @app.post('/api/auth', tags=['auth'], status_code=status.HTTP_201_CREATED)
 def create_auth_state(state: str = Body(), address: str = Body()):
     item = {'state': state, 'address': address}
