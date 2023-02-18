@@ -309,8 +309,11 @@ def get_event_by_id(id: str):
 @app.put('/api/event/{id}/allow/{user_id}', tags=['events'])
 def add_to_white_list(id: str, user_id: str):
     result = db.events.find_one({'_id': ObjectId(id)})
-    result['white_list'].append(user_id)
-    db.events.update_one({'_id': ObjectId(id)}, {'$set': {'white_list': result['white_list']}})
+    if (len(result['white_list']) < result['amount']):
+        result['white_list'].append(user_id)
+        db.events.update_one({'_id': ObjectId(id)}, {'$set': {'white_list': result['white_list']}})
+    else:
+        return HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS)
 
 
 @app.put('/api/event/{id}/deny/{user_id}', tags=['events'])
