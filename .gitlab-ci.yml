@@ -1,0 +1,9 @@
+build:
+  image: docker:20.10.16
+  stage: build
+  services:
+    - docker:20.10.16-dind
+  script:
+    - docker login -u $DOCKERHUB_LOGIN -p $DOCKERHUB_PASS $DOCKER_NAME
+    - docker build -t $DOCKER_NAME .
+    - docker push $DOCKER_NAME
