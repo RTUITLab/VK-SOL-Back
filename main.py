@@ -1,11 +1,12 @@
 from fastapi import FastAPI, status, Request, Body, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-from models.Event import Event
+from models.event import Event
+from models.ticket import Ticket
 from pinata import Pinata
 import requests
 from base64 import b64decode, b64encode
-import pymongo
+import json
 from pymongo import MongoClient
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -253,6 +254,7 @@ async def getFiles(path=""):
 async def create_new_event(event: Event):
     # Save to database
     event.white_list = []
+    event.minted = 0
     jsonable_event = jsonable_encoder(event)
     result_id = str(db.events.insert_one(jsonable_event).inserted_id)
 
@@ -277,7 +279,7 @@ async def create_new_event(event: Event):
 
     # Create collection config
     f = open(f'{base_path}/config.json', "a")
-    pinata_access_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiI0ZThiYzgyMy00OTBjLTQ0M2ItYWUyZi00MzkwYjg2NGQ0NjgiLCJlbWFpbCI6IjBpbHlhQGJrLnJ1IiwiZW1haWxfdmVyaWZpZWQiOnRydWUsInBpbl9wb2xpY3kiOnsicmVnaW9ucyI6W3siaWQiOiJGUkExIiwiZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjF9LHsiaWQiOiJOWUMxIiwiZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjF9XSwidmVyc2lvbiI6MX0sIm1mYV9lbmFibGVkIjpmYWxzZSwic3RhdHVzIjoiQUNUSVZFIn0sImF1dGhlbnRpY2F0aW9uVHlwZSI6InNjb3BlZEtleSIsInNjb3BlZEtleUtleSI6IjA5ODY3MmIwMGRiNWE4MGFmY2Q4Iiwic2NvcGVkS2V5U2VjcmV0IjoiZDJiYzBhNmFmZmY0MGEwNTdkNzc4OGU1ZDRmMjllYzg1YzhjNmE5Y2M5MDgzNmM3YTE2ODkxYjAyZDRmZTA4NiIsImlhdCI6MTY3NjY0NDQ0Mn0.2EVkLNwR5z1ctyUib0q0q42lXmi4V2ow2MZtWXAxH58"
+    pinata_access_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiI5Yzg0MGE3MC0zN2M4LTQ2MzktOWEyYi00ZjA5MDk5NWFjODciLCJlbWFpbCI6ImlseWFtZWRAcm8ucnUiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwicGluX3BvbGljeSI6eyJyZWdpb25zIjpbeyJpZCI6IkZSQTEiLCJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MX0seyJpZCI6Ik5ZQzEiLCJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MX1dLCJ2ZXJzaW9uIjoxfSwibWZhX2VuYWJsZWQiOmZhbHNlLCJzdGF0dXMiOiJBQ1RJVkUifSwiYXV0aGVudGljYXRpb25UeXBlIjoic2NvcGVkS2V5Iiwic2NvcGVkS2V5S2V5IjoiM2U5M2YzY2Y4ZWY3ZTRlY2Y2Y2UiLCJzY29wZWRLZXlTZWNyZXQiOiI0NTE2YTlmMjYyZTdhYTNjMDMwNGJjZDM3MjIxOGRhMTc5ZWJhYjNiOTc2NWIxNDMyZWQxYTE0NWFmYzQwOTlmIiwiaWF0IjoxNjc2NzI0MTA4fQ._1Cus09qFl3XteBKL3qyL14-mAA0XH455XBM-uZypSs"
     f.write(f'{{\n	"price": 0,\n	"number": {event.amount},\n	"sellerFeeBasisPoints": 0,\n	"symbol": "TCKT",\n	"isMutable": true,\n	"isSequential": false,\n	"creators": [\n		{{\n			"address": "{solana_addr}",\n			"share": 100\n		}}\n	],\n	"uploadMethod": "pinata",\n	"awsConfig": null,\n	"nftStorageAuthToken": null,\n	"shdwStorageAccount": null,\n	"pinataConfig": {{\n		"jwt": "{pinata_access_token}",\n		"apiGateway": "https://api.pinata.cloud",\n		"contentGateway": "https://gateway.pinata.cloud",\n		"parallelLimit": 1\n	}},\n	"hiddenSettings": null,\n	"retainAuthority": true,\n	"guards": null\n}}\n\n')
     f.close()
 
@@ -336,3 +338,47 @@ def get_address(state: str):
         return {'address': result['address']}
     else:
         return HTTPException(status_code=404)
+
+
+@app.get('/api/event', tags=['events'])
+def get_all_events(user_id: str | None = None):
+    result = []
+    for event in db.events.find():
+        event['_id'] = str(event['_id'])
+        if (user_id is not None and user_id == event['user_id']) or (user_id is None):
+            result.append(event)
+    return result
+
+@app.get('/api/ticket', tags=['tickets'])
+def get_tickets(user_id: str | None = None):
+    result = []
+    for ticket in db.tickets.find():
+        ticket['_id'] = str(ticket['_id'])
+        if (user_id is not None and user_id == ticket['user_id']) or (user_id is None):
+            result.append(ticket)
+    return result
+
+@app.post('/api/ticket', tags=['tickets'])
+def create_ticket(ticket: Ticket):
+    event = db.events.find_one({'_id': ObjectId(ticket.event_id)})
+    if event['minted'] >= event['amount']:
+        return HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
+
+    if not ticket.user_id in event['white_list']:
+        return HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
+
+    if db.events.find_one({'user_id': ticket.user_id, 'event_id': ObjectId(event['_id'])}) is not None:
+        return HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
+
+    os.system(f'sh -c "cd {back_path}/{ticket.event_id} && sugar mint"')
+
+    f = open(f'{back_path}/{ticket.event_id}/cache.json')
+    data = json.load(f)
+
+    ticket.url = data['items'][str(event['minted'])]['image_link']
+    db.tickets.insert_one(jsonable_encoder(ticket))
+    print(data['items'][str(event['minted'])])
+
+    f.close()
+
+    db.events.find_one_and_update({'_id': ObjectId(ticket.event_id)}, {'$set': {"minted": event['minted'] + 1}})

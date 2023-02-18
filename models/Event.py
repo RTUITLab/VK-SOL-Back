@@ -1,4 +1,3 @@
-from bson import ObjectId
 from pydantic import BaseModel
 
 
@@ -11,4 +10,5 @@ class Event(BaseModel):
     user_id: str
     description: str
     amount: int     # Amount of tickets
+    minted: int | None
     white_list: list[str] | None
