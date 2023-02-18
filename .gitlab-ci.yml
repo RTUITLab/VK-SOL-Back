@@ -1,4 +1,5 @@
 build:
+  pages:
   image: docker:20.10.16
   stage: build
   services:
@@ -10,18 +11,17 @@ build:
 
 deploy:
   image: alpine:latest
-  pages:
-    stage: deploy
-    before_script:
-    - 'command -v ssh-agent >/dev/null || ( apk add --update openssh )' 
-    - eval $(ssh-agent -s)
-    - echo "$VIRTUAL_PRIVATE_KEY" | tr -d '\r' | ssh-add -
-    - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh
-    - ssh-keyscan $VIRTUAL_IP >> ~/.ssh/known_hosts
-    - chmod 644 ~/.ssh/known_hosts
-    script:
-    - ssh $VIRTUAL_LOGIN@$VIRTUAL_IP "hostname && echo 'Welcome!!!' > welcome.txt"
-    artifacts:
-      paths:
-      - public
+  stage: deploy
+  before_script:
+  - 'command -v ssh-agent >/dev/null || ( apk add --update openssh )' 
+  - eval $(ssh-agent -s)
+  - echo "$VIRTUAL_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+  - mkdir -p ~/.ssh
+  - chmod 700 ~/.ssh
+  - ssh-keyscan $VIRTUAL_IP >> ~/.ssh/known_hosts
+  - chmod 644 ~/.ssh/known_hosts
+  script:
+  - ssh $VIRTUAL_LOGIN@$VIRTUAL_IP "hostname && echo 'Welcome!!!' > welcome.txt"
+  artifacts:
+    paths:
+    - public
