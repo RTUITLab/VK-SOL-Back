@@ -1,7 +1,7 @@
 from fastapi import FastAPI, status, Request, Body, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-from models.event import Event
+from models.Event import Event
 from models.ticket import Ticket
 from pinata import Pinata
 import requests
