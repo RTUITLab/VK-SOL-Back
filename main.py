@@ -14,6 +14,8 @@ import os.path as path
 import os
 from bson.objectid import ObjectId
 from fastapi.encoders import jsonable_encoder
+from secret import Secret
+import threading
 
 pinata_api_key = "759216f279deb902f362"
 pinata_secret_api_key = "be4a3be565d0f7fb22f1771cf703daf0acde0603fc32fe637e21207656b03747"
@@ -29,6 +31,7 @@ print(solana_addr)
 app = FastAPI()
 UU = []
 UU.append(1)
+sec = Secret(_time=8,_symbols=8)
 
 URL = "https://9302-193-41-142-48.ngrok.io"
 
@@ -68,6 +71,18 @@ async def createFolder(path):
         os.mkdir(back_path+"/"+path)
         return back_path+"/"+path
 
+@app.get("/api/getQR")
+async def getQR():
+    wallet = "DdzCSCfS8nFypHfWCVoXptvMjVEmcWFEqW3BjUjM5n7H"
+    ticket = "3i5ru4Ym1TarxjCoW1Z3akue2S5b31H87nndMjKqQKFD"
+    return f"http://localhost:8000/api/checkQR?wallet={wallet}&ticket={ticket}&secret={sec.getSec()}"
+
+@app.get("/api/checkQR")
+async def checkQR(wallet, ticket, secret):
+    if (secret==sec.getSec()):
+        return True
+    else:
+        return False
 
 @app.get("/api/ngrog")
 async def setNgrogUrl(url=""):
@@ -388,3 +403,7 @@ def create_ticket(ticket: Ticket):
 @app.put('/api/ticket/{id}/sell/{status}', tags=['tickets'])
 def set_ticket_for_sell(id: str, status: bool = True):
     db.events.find_one_and_update({'_id': ObjectId(id)}, {'$set': {"for_sell": status}})
+
+t1 = threading.Thread(target=sec.update)
+t1.daemon = True
+t1.start()
