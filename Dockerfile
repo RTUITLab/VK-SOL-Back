@@ -12,6 +12,7 @@ ENV PATH=/root/.cargo/bin:/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbi
 RUN solana-keygen new --outfile /root/.config/solana/id.json --no-passphrase
 RUN solana config set --url https://metaplex.devnet.rpcpool.com/
 RUN solana config set --keypair /root/.config/solana/id.json
+RUN solana address
 RUN solana airdrop 2
 
 # Install sugar metaplex 
