@@ -290,11 +290,12 @@ async def create_new_event(event: Event):
 
 
 @app.get('/api/event', tags=['events'])
-def get_all_events() -> list[Event]:
+def get_all_events(user_id: str | None = None) -> list[Event]:
     result = []
     for event in db.events.find():
         event['_id'] = str(event['_id'])
-        result.append(event)
+        if (user_id is not None and user_id == event['user_id']) or (user_id is None):
+            result.append(event)
     return result
 
 
