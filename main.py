@@ -18,6 +18,7 @@ from fastapi.encoders import jsonable_encoder
 from secret import Secret
 import threading
 from fastapi.responses import HTMLResponse
+import asyncio
 
 pinata_api_key = "759216f279deb902f362"
 pinata_secret_api_key = "be4a3be565d0f7fb22f1771cf703daf0acde0603fc32fe637e21207656b03747"
@@ -25,7 +26,10 @@ pinata_access_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRp
 
 pinata = Pinata(pinata_api_key, pinata_secret_api_key, pinata_access_token)
 
-async def create_new_event_back(event: Event):
+event = None
+
+async def create_new_event_back():
+    global event
     event.white_list = []
     event.minted = 0
     jsonable_event = jsonable_encoder(event)
@@ -337,9 +341,13 @@ async def getFiles(path=""):
 
 
 @app.post('/api/event', tags=['events'])
-async def create_new_event(event: Event):
+async def create_new_event(event_: Event):
     # Save to database
-    th = threading.Thread(target=create_new_event_back,args=(event,)).start()
+    global event
+    event = event_
+    # th = threading.Thread(target=create_new_event_back,args=(event,)).start()
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(create_new_event_back())
     return ":))))))"
 
 
