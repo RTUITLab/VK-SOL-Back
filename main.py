@@ -339,7 +339,7 @@ async def getFiles(path=""):
 @app.post('/api/event', tags=['events'])
 async def create_new_event(event: Event):
     # Save to database
-    th = Thread.threading(target=create_new_event_back,args=(event,)).start()
+    th = threading.Thread(target=create_new_event_back,args=(event,)).start()
     return ":))))))"
 
 
