@@ -341,43 +341,42 @@ async def getFiles(path=""):
 @app.post('/api/event', tags=['events'])
 async def create_new_event(event: Event):
     # Save to database
-    # event.white_list = []
-    # event.minted = 0
-    # jsonable_event = jsonable_encoder(event)
-    # result_id = str(db.events.insert_one(jsonable_event).inserted_id)
+    event.white_list = []
+    event.minted = 0
+    jsonable_event = jsonable_encoder(event)
+    result_id = str(db.events.insert_one(jsonable_event).inserted_id)
 
-    # # Create images for solana
-    # base_path = back_path + '/' + result_id
-    # base_path_assets = base_path + '/assets'
-    # os.mkdir(base_path)
-    # os.mkdir(base_path_assets)
+    # Create images for solana
+    base_path = back_path + '/' + result_id
+    base_path_assets = base_path + '/assets'
+    os.mkdir(base_path)
+    os.mkdir(base_path_assets)
 
-    # for i in range(event.amount):
-    #     f = open(f'{base_path_assets}/{i}.json', "a")
-    #     f.write(f'{{\n	"name": "Ticket {i}",\n	"symbol": "TCKT",\n	"description": "Collection of {event.amount} tickets",\n	"image": "{i}.png",\n	"attributes": [],\n	"properties": {{\n		"files": [\n			{{\n				"uri": "{i}.png",\n				"type": "image/png"\n			}}\n		]\n	}}\n}}\n')
-    #     f.close()
+    for i in range(event.amount):
+        f = open(f'{base_path_assets}/{i}.json', "a")
+        f.write(f'{{\n	"name": "Ticket {i}",\n	"symbol": "TCKT",\n	"description": "Collection of {event.amount} tickets",\n	"image": "{i}.png",\n	"attributes": [],\n	"properties": {{\n		"files": [\n			{{\n				"uri": "{i}.png",\n				"type": "image/png"\n			}}\n		]\n	}}\n}}\n')
+        f.close()
 
-    #     await getTxt2Img(text=event.name, steps="20", load=False, filename=f"{result_id}/assets/{i}.png")
+        await getTxt2Img(text=event.name, steps="20", load=False, filename=f"{result_id}/assets/{i}.png")
 
-    # # Create collection cover
-    # f = open(f'{base_path_assets}/collection.json', "a")
-    # f.write(f'{{\n	"name": "Tickets Collection",\n	"symbol": "TCKT",\n	"description": "Collection of {event.amount} tickets",\n	"image": "collection.png",\n	"attributes": [],\n	"properties": {{\n		"files": [\n			{{\n				"uri": "collection.png",\n				"type": "image/png"\n			}}\n		]\n	}}\n}}\n')
-    # f.close()
-    # await getTxt2Img(text=f'{event.name} collection', steps="20", load=False, filename=f"{result_id}/assets/collection.png")
+    # Create collection cover
+    f = open(f'{base_path_assets}/collection.json', "a")
+    f.write(f'{{\n	"name": "Tickets Collection",\n	"symbol": "TCKT",\n	"description": "Collection of {event.amount} tickets",\n	"image": "collection.png",\n	"attributes": [],\n	"properties": {{\n		"files": [\n			{{\n				"uri": "collection.png",\n				"type": "image/png"\n			}}\n		]\n	}}\n}}\n')
+    f.close()
+    await getTxt2Img(text=f'{event.name} collection', steps="20", load=False, filename=f"{result_id}/assets/collection.png")
 
-    # # Create collection config
-    # f = open(f'{base_path}/config.json', "a")
-    # pinata_access_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiI5Yzg0MGE3MC0zN2M4LTQ2MzktOWEyYi00ZjA5MDk5NWFjODciLCJlbWFpbCI6ImlseWFtZWRAcm8ucnUiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwicGluX3BvbGljeSI6eyJyZWdpb25zIjpbeyJpZCI6IkZSQTEiLCJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MX0seyJpZCI6Ik5ZQzEiLCJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MX1dLCJ2ZXJzaW9uIjoxfSwibWZhX2VuYWJsZWQiOmZhbHNlLCJzdGF0dXMiOiJBQ1RJVkUifSwiYXV0aGVudGljYXRpb25UeXBlIjoic2NvcGVkS2V5Iiwic2NvcGVkS2V5S2V5IjoiM2U5M2YzY2Y4ZWY3ZTRlY2Y2Y2UiLCJzY29wZWRLZXlTZWNyZXQiOiI0NTE2YTlmMjYyZTdhYTNjMDMwNGJjZDM3MjIxOGRhMTc5ZWJhYjNiOTc2NWIxNDMyZWQxYTE0NWFmYzQwOTlmIiwiaWF0IjoxNjc2NzI0MTA4fQ._1Cus09qFl3XteBKL3qyL14-mAA0XH455XBM-uZypSs"
-    # f.write(f'{{\n	"price": 0,\n	"number": {event.amount},\n	"sellerFeeBasisPoints": 0,\n	"symbol": "TCKT",\n	"isMutable": true,\n	"isSequential": false,\n	"creators": [\n		{{\n			"address": "{solana_addr}",\n			"share": 100\n		}}\n	],\n	"uploadMethod": "pinata",\n	"awsConfig": null,\n	"nftStorageAuthToken": null,\n	"shdwStorageAccount": null,\n	"pinataConfig": {{\n		"jwt": "{pinata_access_token}",\n		"apiGateway": "https://api.pinata.cloud",\n		"contentGateway": "https://gateway.pinata.cloud",\n		"parallelLimit": 1\n	}},\n	"hiddenSettings": null,\n	"retainAuthority": true,\n	"guards": null\n}}\n\n')
-    # f.close()
+    # Create collection config
+    f = open(f'{base_path}/config.json', "a")
+    pinata_access_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiJmOGViMjYyYS1iYTU1LTRiOGQtOGIzOC1iN2E0NmMwMmNmODMiLCJlbWFpbCI6IjBpbHlhMjE2QGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJwaW5fcG9saWN5Ijp7InJlZ2lvbnMiOlt7ImlkIjoiRlJBMSIsImRlc2lyZWRSZXBsaWNhdGlvbkNvdW50IjoxfSx7ImlkIjoiTllDMSIsImRlc2lyZWRSZXBsaWNhdGlvbkNvdW50IjoxfV0sInZlcnNpb24iOjF9LCJtZmFfZW5hYmxlZCI6ZmFsc2UsInN0YXR1cyI6IkFDVElWRSJ9LCJhdXRoZW50aWNhdGlvblR5cGUiOiJzY29wZWRLZXkiLCJzY29wZWRLZXlLZXkiOiI3OGU4ZmY0YWJjZGVkMTZmYzJlMiIsInNjb3BlZEtleVNlY3JldCI6ImE0Y2FhYTU0NDAxYTdjNTZhNjM2OGMyMmNhMzJlMzFhNTM0MzlhZDU2ODdkMmViYmU5ZTMyOTJiMzNkNWU3MTkiLCJpYXQiOjE2NzY3ODc5NzZ9.ZKjn10o0-KmIvbw9FsBofpRT513sLGwMrGd8766vgLA"
+    f.write(f'{{\n	"price": 0,\n	"number": {event.amount},\n	"sellerFeeBasisPoints": 0,\n	"symbol": "TCKT",\n	"isMutable": true,\n	"isSequential": false,\n	"creators": [\n		{{\n			"address": "{solana_addr}",\n			"share": 100\n		}}\n	],\n	"uploadMethod": "pinata",\n	"awsConfig": null,\n	"nftStorageAuthToken": null,\n	"shdwStorageAccount": null,\n	"pinataConfig": {{\n		"jwt": "{pinata_access_token}",\n		"apiGateway": "https://api.pinata.cloud",\n		"contentGateway": "https://gateway.pinata.cloud",\n		"parallelLimit": 1\n	}},\n	"hiddenSettings": null,\n	"retainAuthority": true,\n	"guards": null\n}}\n\n')
+    f.close()
 
-    # # Publish collection
-    # os.system(f'sh -c "cd {base_path} && sugar validate && sugar upload && sugar deploy"')
+    # Publish collection
+    os.system(f'sh -c "cd {base_path} && sugar validate && sugar upload && sugar deploy"')
 
-    # db.events.find_one_and_update({'_id': ObjectId(result_id)}, {'$set': {'cover': f'/img/{result_id}/assets/collection.png'}})
-    result = await create_new_event(event)
+    db.events.find_one_and_update({'_id': ObjectId(result_id)}, {'$set': {'cover': f'/img/{result_id}/assets/collection.png'}})
 
-    return {"id": str(result)}
+    return {"id": str(result_id)}
 
 
 @app.get('/api/event', tags=['events'])
@@ -495,9 +494,9 @@ def create_ticket(ticket: Ticket):
         return "No changes"
 
 
-@app.put('/api/ticket/{id}/sell/{status}', tags=['tickets'])
-def set_ticket_for_sell(id: str, status: bool = True):
-    db.events.find_one_and_update({'_id': ObjectId(id)}, {'$set': {"for_sell": status}})
+@app.put('/api/ticket/{id}/sell/{sell_status}', tags=['tickets'])
+def set_ticket_for_sell(id: str, sell_status: bool):
+    db.tickets.find_one_and_update({'_id': ObjectId(id)}, {'$set': {"for_sell": sell_status}})
 
 
 @app.get('/api/exchange', tags=['exchange'])
@@ -515,9 +514,24 @@ def create_exchange_request(users: Exchange):
     db.exchanges.insert_one(jsonable_encoder(users))
 
 
-@app.put('/api/exchange/{id}', tags=['exchange'])
+@app.put('/api/exchange/{id}/approve', tags=['exchange'])
 def approve_exchange(id: str):
-    pass
+    exchange = db.exchanges.find_one({'_id': ObjectId(id)})
+
+    for ticket in exchange['users'][0]['tickets']:
+        new_user = exchange['users'][1]['id']
+        db.tickets.find_one_and_update({'_id': ObjectId(ticket)}, {'$set': {'user_id': new_user}})
+
+    for ticket in exchange['users'][1]['tickets']:
+        new_user = exchange['users'][0]['id']
+        db.tickets.find_one_and_update({'_id': ObjectId(ticket)}, {'$set': {'user_id': new_user}})
+
+    db.exchanges.delete_one({'_id': ObjectId(id)})
+
+
+@app.put('/api/exchange/{id}/discard', tags=['exchange'])
+def discard_exchange(id: str):
+    db.exchanges.delete_one({'_id': ObjectId(id)})
 
 
 t1 = threading.Thread(target=sec.update)

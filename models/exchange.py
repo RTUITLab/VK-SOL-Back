@@ -8,4 +8,5 @@ class ExchangeUser(BaseModel):
 
 class Exchange(BaseModel):
     _id: str | None
+    user_id: str
     users: list[ExchangeUser]
