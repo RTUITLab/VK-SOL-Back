@@ -17,6 +17,7 @@ from bson.objectid import ObjectId
 from fastapi.encoders import jsonable_encoder
 from secret import Secret
 import threading
+from fastapi.responses import HTMLResponse
 
 pinata_api_key = "759216f279deb902f362"
 pinata_secret_api_key = "be4a3be565d0f7fb22f1771cf703daf0acde0603fc32fe637e21207656b03747"
@@ -84,16 +85,22 @@ async def getQR(wallet, ticket):
 
 @app.get("/api/checkQR")
 async def checkQR(wallet, ticket, secret):
+    t = ""
     if (secret==sec.getSec()):
         res = requests.get(f"https://api.shyft.to/sol/v1/nft/read_all?network=devnet&address={wallet}", headers={"x-api-key":"-3iYNcRok7Gm4EMl"})
         check_arr = [x["mint"] for x in res.json()["result"]]
         if (ticket in check_arr):
-            return True
+            with open("go.html", "r") as f:
+                t = f.read()
+            HTMLResponse(content=t, status_code=200)
         else:
-            return False
-        return True
+            with open("go_away.html", "r") as f:
+                t = f.read()
+            HTMLResponse(content=t, status_code=200)
     else:
-        return False
+        with open("go_away.html", "r") as f:
+                t = f.read()
+        return HTMLResponse(content=t, status_code=200)
 
 @app.get("/api/findMint")
 async def findMint(wallet, check:bool):
