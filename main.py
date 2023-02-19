@@ -473,6 +473,9 @@ def create_exchange_request(users: Exchange):
 
 @app.put('/api/exchange/{id}', tags=['exchange'])
 def approve_exchange(id: str):
+    # exchange = db.exchanges.find_one({'_id': ObjectId(id)})
+
+    # for ticket in exchange['users'][0]['tickets']:
     pass
 
 
