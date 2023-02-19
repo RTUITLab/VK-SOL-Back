@@ -26,10 +26,8 @@ pinata_access_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRp
 
 pinata = Pinata(pinata_api_key, pinata_secret_api_key, pinata_access_token)
 
-event = None
 
-async def create_new_event_back():
-    global event
+async def create_new_event_back(event: Event):
     event.white_list = []
     event.minted = 0
     jsonable_event = jsonable_encoder(event)
@@ -62,6 +60,13 @@ async def create_new_event_back():
 
     os.system(f'sh -c "cd {base_path} && sugar validate && sugar upload && sugar deploy"')
     # db.events.find_one_and_update({'_id': ObjectId(result_id)}, {'$set': {'cover': f'/img/{result_id}/assets/collection.png'}})
+
+def between_callback(event: Event):
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+
+    loop.run_until_complete(create_new_event_back(event))
+    loop.close()
 
 import subprocess
 solana_addr = str(subprocess.check_output(['solana', 'address'])).split('\'')[1].split('\\')[0]
@@ -341,13 +346,9 @@ async def getFiles(path=""):
 
 
 @app.post('/api/event', tags=['events'])
-async def create_new_event(event_: Event):
-    # Save to database
-    global event
-    event = event_
-    # th = threading.Thread(target=create_new_event_back,args=(event,)).start()
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(create_new_event_back())
+async def create_new_event(event: Event):
+    _thread = threading.Thread(target=between_callback, args=(event,))
+    _thread.start()
     return ":))))))"
 
 
