@@ -12,3 +12,4 @@ class Event(BaseModel):
     amount: int     # Amount of tickets
     minted: int | None
     white_list: list[str] | None
+    viewed: int | None

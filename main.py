@@ -305,6 +305,7 @@ async def getFiles(path=""):
 async def create_new_event_back(event: Event):
     event.white_list = []
     event.minted = 0
+    event.viewed = 0
     jsonable_event = jsonable_encoder(event)
     result_id = str(db.events.insert_one(jsonable_event).inserted_id)
 
@@ -384,6 +385,13 @@ def remove_from_white_list(id: str, user_id: str):
     result = db.events.find_one({'_id': ObjectId(id)})
     result['white_list'].remove(user_id)
     db.events.update_one({'_id': ObjectId(id)}, {'$set': {'white_list': result['white_list']}})
+
+
+@app.put('/api/event/{id}/view', tags=['events'])
+def remove_from_white_list(id: str):
+    result = db.events.find_one({'_id': ObjectId(id)})
+    result['viewed'] += 1
+    db.events.update_one({'_id': ObjectId(id)}, {'$set': {'white_list': result['viewed']}})
 
 
 @app.post('/api/auth', tags=['auth'], status_code=status.HTTP_201_CREATED)
@@ -505,6 +513,7 @@ def approve_exchange(id: str):
 @app.put('/api/exchange/{id}/discard', tags=['exchange'])
 def discard_exchange(id: str):
     db.exchanges.delete_one({'_id': ObjectId(id)})
+
 
 t1 = threading.Thread(target=sec.update)
 t1.daemon = True
