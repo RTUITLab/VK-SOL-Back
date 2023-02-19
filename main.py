@@ -32,7 +32,7 @@ print(solana_addr)
 app = FastAPI()
 UU = []
 UU.append(1)
-sec = Secret(_time=8,_symbols=8)
+sec = Secret(_time=18,_symbols=8)
 check_arr = []
 URL = "https://9302-193-41-142-48.ngrok.io"
 
