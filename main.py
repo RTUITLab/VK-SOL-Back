@@ -53,12 +53,12 @@ async def create_new_event_back(event: Event):
     await getTxt2Img(text=f'{event.name} collection', steps="20", load=False, filename=f"{result_id}/assets/collection.png")
 
     # Create collection config
+    os.system(f'sh -c "cd {base_path} && sugar validate && sugar upload && sugar deploy"')
     f = open(f'{base_path}/config.json', "a")
     pinata_access_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiI5OGEwYmFiNC1hMzQwLTRmYzMtODBmZS03MDQwMDBhZjVjMDgiLCJlbWFpbCI6InhyY3Jvd2QxNUBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwicGluX3BvbGljeSI6eyJyZWdpb25zIjpbeyJpZCI6IkZSQTEiLCJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MX0seyJpZCI6Ik5ZQzEiLCJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MX1dLCJ2ZXJzaW9uIjoxfSwibWZhX2VuYWJsZWQiOmZhbHNlLCJzdGF0dXMiOiJBQ1RJVkUifSwiYXV0aGVudGljYXRpb25UeXBlIjoic2NvcGVkS2V5Iiwic2NvcGVkS2V5S2V5IjoiNThhMmE3YjM4MDlmMjI5ZDY1ZjMiLCJzY29wZWRLZXlTZWNyZXQiOiI4ZmYzNTE5NjliYWJkZTM0MWRlYmM4NTE1Mzg2MWRhNjdiY2JlNDA5NzI2MDY2ZjZiMjIwNjhjNzUwZDBlMDAwIiwiaWF0IjoxNjc2Nzk3ODYxfQ.scsw5orwYi0GT11PCLGw2hdnNgecvuKbrs9fot81jA0"
     f.write(f'{{\n	"price": 0,\n	"number": {event.amount},\n	"sellerFeeBasisPoints": 0,\n	"symbol": "TCKT",\n	"isMutable": true,\n	"isSequential": false,\n	"creators": [\n		{{\n			"address": "{solana_addr}",\n			"share": 100\n		}}\n	],\n	"uploadMethod": "pinata",\n	"awsConfig": null,\n	"nftStorageAuthToken": null,\n	"shdwStorageAccount": null,\n	"pinataConfig": {{\n		"jwt": "{pinata_access_token}",\n		"apiGateway": "https://api.pinata.cloud",\n		"contentGateway": "https://gateway.pinata.cloud",\n		"parallelLimit": 1\n	}},\n	"hiddenSettings": null,\n	"retainAuthority": true,\n	"guards": null\n}}\n\n')
     f.close()
 
-    os.system(f'sh -c "cd {base_path} && sugar validate && sugar upload && sugar deploy"')
     # db.events.find_one_and_update({'_id': ObjectId(result_id)}, {'$set': {'cover': f'/img/{result_id}/assets/collection.png'}})
 
 def between_callback(event: Event):
