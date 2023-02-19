@@ -85,6 +85,12 @@ async def getQR(wallet, ticket):
 @app.get("/api/checkQR")
 async def checkQR(wallet, ticket, secret):
     if (secret==sec.getSec()):
+        res = requests.get(f"https://api.shyft.to/sol/v1/nft/read_all?network=devnet&address={wallet}", headers={"x-api-key":"-3iYNcRok7Gm4EMl"})
+        check_arr = [x["mint"] for x in res.json()["result"]]
+        if (ticket in check_arr):
+            return True
+        else:
+            return False
         return True
     else:
         return False
