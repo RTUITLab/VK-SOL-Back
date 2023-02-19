@@ -394,8 +394,10 @@ def get_tickets(user_id: str | None = None):
 
 @app.post('/api/ticket', tags=['tickets'])
 def create_ticket(ticket: Ticket):
-    res = requests.get(f"https://api.shyft.to/sol/v1/nft/read_all?network=devnet&address={wallet}", headers={"x-api-key":"-3iYNcRok7Gm4EMl"})
+    res = requests.get(f"https://api.shyft.to/sol/v1/nft/read_all?network=devnet&address={ticket.user_id}", headers={"x-api-key":"-3iYNcRok7Gm4EMl"})
     check_arr = [{"mint":x["mint"], "owner":x["owner"]} for x in res.json()["result"]]
+
+    print(check_arr)
 
     ticket.for_sell = False
     event = db.events.find_one({'_id': ObjectId(ticket.event_id)})
@@ -421,12 +423,15 @@ def create_ticket(ticket: Ticket):
 
     db.events.find_one_and_update({'_id': ObjectId(ticket.event_id)}, {'$set': {"minted": event['minted'] + 1}})
 
-    res = requests.get(f"https://api.shyft.to/sol/v1/nft/read_all?network=devnet&address={wallet}", headers={"x-api-key":"-3iYNcRok7Gm4EMl"})
+    res = requests.get(f"https://api.shyft.to/sol/v1/nft/read_all?network=devnet&address={ticket.user_id}", headers={"x-api-key":"-3iYNcRok7Gm4EMl"})
     arr = [{"mint":x["mint"], "owner":x["owner"]} for x in res.json()["result"]]
     tt = []
     for x in arr:
         if(not x in check_arr and x["owner"] in check_arr[0]["owner"]):
             tt.append(x)
+
+    print(tt)
+    
     if (len(tt) > 0):
         return tt[0]
     else:
