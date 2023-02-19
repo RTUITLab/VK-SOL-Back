@@ -2,6 +2,7 @@ from fastapi import FastAPI, status, Request, Body, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from models.Event import Event
+from models.exchange import Exchange
 from models.ticket import Ticket
 from pinata import Pinata
 import requests
@@ -353,7 +354,7 @@ def add_to_white_list(id: str, user_id: str):
 
 
 @app.put('/api/event/{id}/deny/{user_id}', tags=['events'])
-def add_to_white_list(id: str, user_id: str):
+def remove_from_white_list(id: str, user_id: str):
     result = db.events.find_one({'_id': ObjectId(id)})
     result['white_list'].remove(user_id)
     db.events.update_one({'_id': ObjectId(id)}, {'$set': {'white_list': result['white_list']}})
@@ -443,6 +444,27 @@ def create_ticket(ticket: Ticket):
 @app.put('/api/ticket/{id}/sell/{status}', tags=['tickets'])
 def set_ticket_for_sell(id: str, status: bool = True):
     db.events.find_one_and_update({'_id': ObjectId(id)}, {'$set': {"for_sell": status}})
+
+
+@app.get('/api/exchange', tags=['exchange'])
+def get_exchanges(user_id: str | None = None):
+    result = []
+    for exchange in db.exchanges.find():
+        exchange['_id'] = str(exchange['_id'])
+        if (user_id is not None and (user_id == exchange['users'][0]['id'] or user_id == exchange['users'][1]['id'])) or (user_id is None):
+            result.append(exchange)
+    return result
+
+
+@app.post('/api/exchange', tags=['exchange'])
+def create_exchange_request(users: Exchange):
+    db.exchanges.insert_one(jsonable_encoder(users))
+
+
+@app.put('/api/exchange/{id}', tags=['exchange'])
+def approve_exchange(id: str):
+    pass
+
 
 t1 = threading.Thread(target=sec.update)
 t1.daemon = True
