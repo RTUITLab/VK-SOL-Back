@@ -76,7 +76,11 @@ async def createFolder(path):
 async def getQR(wallet, ticket):
     wallet = "DdzCSCfS8nFypHfWCVoXptvMjVEmcWFEqW3BjUjM5n7H"
     ticket = "3i5ru4Ym1TarxjCoW1Z3akue2S5b31H87nndMjKqQKFD"
-    return f"http://levandrovskiy.ru/api/checkQR?wallet={wallet}&ticket={ticket}&secret={sec.getSec()}"
+    res = requests.post("https://api.hm.ru/key/url/shorten", json={
+                                                                    "api_key": "3430dde3-0222-43de-8a6a-dcee8df9af97",
+                                                                    "url": f"http://levandrovskiy.ru/api/checkQR?wallet={wallet}&ticket={ticket}&secret={sec.getSec()}"
+                                                                    })
+    return res.json()['data']['short_url']
 
 @app.get("/api/checkQR")
 async def checkQR(wallet, ticket, secret):
