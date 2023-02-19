@@ -478,7 +478,7 @@ def create_exchange_request(users: Exchange):
     db.exchanges.insert_one(jsonable_encoder(users))
 
 
-@app.put('/api/exchange/{id}', tags=['exchange'])
+@app.put('/api/exchange/{id}/approve', tags=['exchange'])
 def approve_exchange(id: str):
     # exchange = db.exchanges.find_one({'_id': ObjectId(id)})
 
