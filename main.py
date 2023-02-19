@@ -394,6 +394,9 @@ def get_tickets(user_id: str | None = None):
 
 @app.post('/api/ticket', tags=['tickets'])
 def create_ticket(ticket: Ticket):
+    res = requests.get(f"https://api.shyft.to/sol/v1/nft/read_all?network=devnet&address={wallet}", headers={"x-api-key":"-3iYNcRok7Gm4EMl"})
+    check_arr = [{"mint":x["mint"], "owner":x["owner"]} for x in res.json()["result"]]
+
     ticket.for_sell = False
     event = db.events.find_one({'_id': ObjectId(ticket.event_id)})
     if event['minted'] >= event['amount']:
@@ -402,7 +405,7 @@ def create_ticket(ticket: Ticket):
     if not ticket.user_id in event['white_list']:
         return HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
 
-    if db.tickets.find_one({'user_id': ticket.user_id, 'event_id': ObjectId(event['_id'])}) is not None:
+    if db.events.find_one({'user_id': ticket.user_id, 'event_id': ObjectId(event['_id'])}) is not None:
         return HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
 
     os.system(f'sh -c "cd {back_path}/{ticket.event_id} && sugar mint --receiver {ticket.user_id}"')
@@ -418,10 +421,21 @@ def create_ticket(ticket: Ticket):
 
     db.events.find_one_and_update({'_id': ObjectId(ticket.event_id)}, {'$set': {"minted": event['minted'] + 1}})
 
+    res = requests.get(f"https://api.shyft.to/sol/v1/nft/read_all?network=devnet&address={wallet}", headers={"x-api-key":"-3iYNcRok7Gm4EMl"})
+    arr = [{"mint":x["mint"], "owner":x["owner"]} for x in res.json()["result"]]
+    tt = []
+    for x in arr:
+        if(not x in check_arr and x["owner"] in check_arr[0]["owner"]):
+            tt.append(x)
+    if (len(tt) > 0):
+        return tt[0]
+    else:
+        return "No changes"
+
 
 @app.put('/api/ticket/{id}/sell/{status}', tags=['tickets'])
 def set_ticket_for_sell(id: str, status: bool = True):
-    db.tickets.find_one_and_update({'_id': ObjectId(id)}, {'$set': {"for_sell": status}})
+    db.events.find_one_and_update({'_id': ObjectId(id)}, {'$set': {"for_sell": status}})
 
 t1 = threading.Thread(target=sec.update)
 t1.daemon = True
