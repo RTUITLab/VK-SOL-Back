@@ -391,7 +391,7 @@ def remove_from_white_list(id: str, user_id: str):
 def remove_from_white_list(id: str):
     result = db.events.find_one({'_id': ObjectId(id)})
     result['viewed'] += 1
-    db.events.update_one({'_id': ObjectId(id)}, {'$set': {'white_list': result['viewed']}})
+    db.events.update_one({'_id': ObjectId(id)}, {'$set': {'viewed': result['viewed']}})
 
 
 @app.post('/api/auth', tags=['auth'], status_code=status.HTTP_201_CREATED)
