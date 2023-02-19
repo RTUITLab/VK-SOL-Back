@@ -480,10 +480,22 @@ def create_exchange_request(users: Exchange):
 
 @app.put('/api/exchange/{id}/approve', tags=['exchange'])
 def approve_exchange(id: str):
-    # exchange = db.exchanges.find_one({'_id': ObjectId(id)})
+    exchange = db.exchanges.find_one({'_id': ObjectId(id)})
 
-    # for ticket in exchange['users'][0]['tickets']:
-    pass
+    for ticket in exchange['users'][0]['tickets']:
+        new_user = exchange['users'][1]['id']
+        db.tickets.find_one_and_update({'_id': ObjectId(ticket)}, {'$set': {'user_id': new_user}})
+
+    for ticket in exchange['users'][1]['tickets']:
+        new_user = exchange['users'][0]['id']
+        db.tickets.find_one_and_update({'_id': ObjectId(ticket)}, {'$set': {'user_id': new_user}})
+
+    db.exchanges.delete_one({'_id': ObjectId(id)})
+
+
+@app.put('/api/exchange/{id}/discard', tags=['exchange'])
+def discard_exchange(id: str):
+    db.exchanges.delete_one({'_id': ObjectId(id)})
 
 
 t1 = threading.Thread(target=sec.update)
