@@ -25,7 +25,7 @@ pinata_access_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRp
 
 pinata = Pinata(pinata_api_key, pinata_secret_api_key, pinata_access_token)
 
-async def create_new_event(event: Event):
+async def create_new_event_back(event: Event):
     event.white_list = []
     event.minted = 0
     jsonable_event = jsonable_encoder(event)
@@ -58,8 +58,6 @@ async def create_new_event(event: Event):
 
     os.system(f'sh -c "cd {base_path} && sugar validate && sugar upload && sugar deploy"')
     # db.events.find_one_and_update({'_id': ObjectId(result_id)}, {'$set': {'cover': f'/img/{result_id}/assets/collection.png'}})
-
-    return {"id": str(result_id)}
 
 import subprocess
 solana_addr = str(subprocess.check_output(['solana', 'address'])).split('\'')[1].split('\\')[0]
@@ -341,42 +339,8 @@ async def getFiles(path=""):
 @app.post('/api/event', tags=['events'])
 async def create_new_event(event: Event):
     # Save to database
-    event.white_list = []
-    event.minted = 0
-    jsonable_event = jsonable_encoder(event)
-    result_id = str(db.events.insert_one(jsonable_event).inserted_id)
-
-    # Create images for solana
-    base_path = back_path + '/' + result_id
-    base_path_assets = base_path + '/assets'
-    os.mkdir(base_path)
-    os.mkdir(base_path_assets)
-
-    for i in range(event.amount):
-        f = open(f'{base_path_assets}/{i}.json', "a")
-        f.write(f'{{\n	"name": "Ticket {i}",\n	"symbol": "TCKT",\n	"description": "Collection of {event.amount} tickets",\n	"image": "{i}.png",\n	"attributes": [],\n	"properties": {{\n		"files": [\n			{{\n				"uri": "{i}.png",\n				"type": "image/png"\n			}}\n		]\n	}}\n}}\n')
-        f.close()
-
-        await getTxt2Img(text=event.name, steps="20", load=False, filename=f"{result_id}/assets/{i}.png")
-
-    # Create collection cover
-    f = open(f'{base_path_assets}/collection.json', "a")
-    f.write(f'{{\n	"name": "Tickets Collection",\n	"symbol": "TCKT",\n	"description": "Collection of {event.amount} tickets",\n	"image": "collection.png",\n	"attributes": [],\n	"properties": {{\n		"files": [\n			{{\n				"uri": "collection.png",\n				"type": "image/png"\n			}}\n		]\n	}}\n}}\n')
-    f.close()
-    await getTxt2Img(text=f'{event.name} collection', steps="20", load=False, filename=f"{result_id}/assets/collection.png")
-
-    # Create collection config
-    f = open(f'{base_path}/config.json', "a")
-    pinata_access_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiJmOGViMjYyYS1iYTU1LTRiOGQtOGIzOC1iN2E0NmMwMmNmODMiLCJlbWFpbCI6IjBpbHlhMjE2QGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJwaW5fcG9saWN5Ijp7InJlZ2lvbnMiOlt7ImlkIjoiRlJBMSIsImRlc2lyZWRSZXBsaWNhdGlvbkNvdW50IjoxfSx7ImlkIjoiTllDMSIsImRlc2lyZWRSZXBsaWNhdGlvbkNvdW50IjoxfV0sInZlcnNpb24iOjF9LCJtZmFfZW5hYmxlZCI6ZmFsc2UsInN0YXR1cyI6IkFDVElWRSJ9LCJhdXRoZW50aWNhdGlvblR5cGUiOiJzY29wZWRLZXkiLCJzY29wZWRLZXlLZXkiOiI3OGU4ZmY0YWJjZGVkMTZmYzJlMiIsInNjb3BlZEtleVNlY3JldCI6ImE0Y2FhYTU0NDAxYTdjNTZhNjM2OGMyMmNhMzJlMzFhNTM0MzlhZDU2ODdkMmViYmU5ZTMyOTJiMzNkNWU3MTkiLCJpYXQiOjE2NzY3ODc5NzZ9.ZKjn10o0-KmIvbw9FsBofpRT513sLGwMrGd8766vgLA"
-    f.write(f'{{\n	"price": 0,\n	"number": {event.amount},\n	"sellerFeeBasisPoints": 0,\n	"symbol": "TCKT",\n	"isMutable": true,\n	"isSequential": false,\n	"creators": [\n		{{\n			"address": "{solana_addr}",\n			"share": 100\n		}}\n	],\n	"uploadMethod": "pinata",\n	"awsConfig": null,\n	"nftStorageAuthToken": null,\n	"shdwStorageAccount": null,\n	"pinataConfig": {{\n		"jwt": "{pinata_access_token}",\n		"apiGateway": "https://api.pinata.cloud",\n		"contentGateway": "https://gateway.pinata.cloud",\n		"parallelLimit": 1\n	}},\n	"hiddenSettings": null,\n	"retainAuthority": true,\n	"guards": null\n}}\n\n')
-    f.close()
-
-    # Publish collection
-    os.system(f'sh -c "cd {base_path} && sugar validate && sugar upload && sugar deploy"')
-
-    db.events.find_one_and_update({'_id': ObjectId(result_id)}, {'$set': {'cover': f'/img/{result_id}/assets/collection.png'}})
-
-    return {"id": str(result_id)}
+    th = Thread.threading(target=create_new_event_back,args=(event,)).start()
+    return ":))))))"
 
 
 @app.get('/api/event', tags=['events'])
