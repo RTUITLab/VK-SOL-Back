@@ -32,7 +32,7 @@ app = FastAPI()
 UU = []
 UU.append(1)
 sec = Secret(_time=8,_symbols=8)
-
+check_arr = []
 URL = "https://9302-193-41-142-48.ngrok.io"
 
 back_path = path.abspath(path.join(__file__, "../")
@@ -72,10 +72,10 @@ async def createFolder(path):
         return back_path+"/"+path
 
 @app.get("/api/getQR")
-async def getQR():
+async def getQR(wallet, ticket):
     wallet = "DdzCSCfS8nFypHfWCVoXptvMjVEmcWFEqW3BjUjM5n7H"
     ticket = "3i5ru4Ym1TarxjCoW1Z3akue2S5b31H87nndMjKqQKFD"
-    return f"http://localhost:8000/api/checkQR?wallet={wallet}&ticket={ticket}&secret={sec.getSec()}"
+    return f"http://levandrovskiy.ru/api/checkQR?wallet={wallet}&ticket={ticket}&secret={sec.getSec()}"
 
 @app.get("/api/checkQR")
 async def checkQR(wallet, ticket, secret):
@@ -83,6 +83,25 @@ async def checkQR(wallet, ticket, secret):
         return True
     else:
         return False
+
+@app.get("/api/findMint")
+async def findMint(wallet, check:bool):
+    global check_arr
+    if(check == False):
+        res = requests.get(f"https://api.shyft.to/sol/v1/nft/read_all?network=devnet&address={wallet}", headers={"x-api-key":"-3iYNcRok7Gm4EMl"})
+        check_arr = [{"mint":x["mint"], "owner":x["owner"]} for x in res.json()["result"]]
+        return check_arr
+    if(check == True):
+        res = requests.get(f"https://api.shyft.to/sol/v1/nft/read_all?network=devnet&address={wallet}", headers={"x-api-key":"-3iYNcRok7Gm4EMl"})
+        arr = [{"mint":x["mint"], "owner":x["owner"]} for x in res.json()["result"]]
+        tt = []
+        for x in arr:
+            if(not x in check_arr and x["owner"] in check_arr[0]["owner"]):
+                tt.append(x)
+        if (len(tt) > 0):
+            return tt[0]
+        else:
+            return "No changes"
 
 @app.get("/api/ngrog")
 async def setNgrogUrl(url=""):
