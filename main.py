@@ -460,7 +460,7 @@ def create_ticket(ticket: Ticket):
 
 @app.put('/api/ticket/{id}/sell/{sell_status}', tags=['tickets'])
 def set_ticket_for_sell(id: str, sell_status: bool):
-    db.events.find_one_and_update({'_id': ObjectId(id)}, {'$set': {"for_sell": sell_status}})
+    db.tickets.find_one_and_update({'_id': ObjectId(id)}, {'$set': {"for_sell": sell_status}})
 
 
 @app.get('/api/exchange', tags=['exchange'])
