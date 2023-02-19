@@ -25,6 +25,42 @@ pinata_access_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRp
 
 pinata = Pinata(pinata_api_key, pinata_secret_api_key, pinata_access_token)
 
+async def create_new_event(event: Event):
+    event.white_list = []
+    event.minted = 0
+    jsonable_event = jsonable_encoder(event)
+    result_id = str(db.events.insert_one(jsonable_event).inserted_id)
+
+    # Create images for solana
+    base_path = back_path + '/' + result_id
+    base_path_assets = base_path + '/assets'
+    os.mkdir(base_path)
+    os.mkdir(base_path_assets)
+
+    for i in range(event.amount):
+        f = open(f'{base_path_assets}/{i}.json', "a")
+        f.write(f'{{\n	"name": "Ticket {i}",\n	"symbol": "TCKT",\n	"description": "Collection of {event.amount} tickets",\n	"image": "{i}.png",\n	"attributes": [],\n	"properties": {{\n		"files": [\n			{{\n				"uri": "{i}.png",\n				"type": "image/png"\n			}}\n		]\n	}}\n}}\n')
+        f.close()
+
+        await getTxt2Img(text=event.name, steps="20", load=False, filename=f"{result_id}/assets/{i}.png")
+
+    # Create collection cover
+    f = open(f'{base_path_assets}/collection.json', "a")
+    f.write(f'{{\n	"name": "Tickets Collection",\n	"symbol": "TCKT",\n	"description": "Collection of {event.amount} tickets",\n	"image": "collection.png",\n	"attributes": [],\n	"properties": {{\n		"files": [\n			{{\n				"uri": "collection.png",\n				"type": "image/png"\n			}}\n		]\n	}}\n}}\n')
+    f.close()
+    await getTxt2Img(text=f'{event.name} collection', steps="20", load=False, filename=f"{result_id}/assets/collection.png")
+
+    # Create collection config
+    f = open(f'{base_path}/config.json', "a")
+    pinata_access_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiI5Yzg0MGE3MC0zN2M4LTQ2MzktOWEyYi00ZjA5MDk5NWFjODciLCJlbWFpbCI6ImlseWFtZWRAcm8ucnUiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwicGluX3BvbGljeSI6eyJyZWdpb25zIjpbeyJpZCI6IkZSQTEiLCJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MX0seyJpZCI6Ik5ZQzEiLCJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MX1dLCJ2ZXJzaW9uIjoxfSwibWZhX2VuYWJsZWQiOmZhbHNlLCJzdGF0dXMiOiJBQ1RJVkUifSwiYXV0aGVudGljYXRpb25UeXBlIjoic2NvcGVkS2V5Iiwic2NvcGVkS2V5S2V5IjoiM2U5M2YzY2Y4ZWY3ZTRlY2Y2Y2UiLCJzY29wZWRLZXlTZWNyZXQiOiI0NTE2YTlmMjYyZTdhYTNjMDMwNGJjZDM3MjIxOGRhMTc5ZWJhYjNiOTc2NWIxNDMyZWQxYTE0NWFmYzQwOTlmIiwiaWF0IjoxNjc2NzI0MTA4fQ._1Cus09qFl3XteBKL3qyL14-mAA0XH455XBM-uZypSs"
+    f.write(f'{{\n	"price": 0,\n	"number": {event.amount},\n	"sellerFeeBasisPoints": 0,\n	"symbol": "TCKT",\n	"isMutable": true,\n	"isSequential": false,\n	"creators": [\n		{{\n			"address": "{solana_addr}",\n			"share": 100\n		}}\n	],\n	"uploadMethod": "pinata",\n	"awsConfig": null,\n	"nftStorageAuthToken": null,\n	"shdwStorageAccount": null,\n	"pinataConfig": {{\n		"jwt": "{pinata_access_token}",\n		"apiGateway": "https://api.pinata.cloud",\n		"contentGateway": "https://gateway.pinata.cloud",\n		"parallelLimit": 1\n	}},\n	"hiddenSettings": null,\n	"retainAuthority": true,\n	"guards": null\n}}\n\n')
+    f.close()
+
+    os.system(f'sh -c "cd {base_path} && sugar validate && sugar upload && sugar deploy"')
+    # db.events.find_one_and_update({'_id': ObjectId(result_id)}, {'$set': {'cover': f'/img/{result_id}/assets/collection.png'}})
+
+    return {"id": str(result_id)}
+
 import subprocess
 solana_addr = str(subprocess.check_output(['solana', 'address'])).split('\'')[1].split('\\')[0]
 print(solana_addr)
@@ -305,42 +341,43 @@ async def getFiles(path=""):
 @app.post('/api/event', tags=['events'])
 async def create_new_event(event: Event):
     # Save to database
-    event.white_list = []
-    event.minted = 0
-    jsonable_event = jsonable_encoder(event)
-    result_id = str(db.events.insert_one(jsonable_event).inserted_id)
+    # event.white_list = []
+    # event.minted = 0
+    # jsonable_event = jsonable_encoder(event)
+    # result_id = str(db.events.insert_one(jsonable_event).inserted_id)
 
-    # Create images for solana
-    base_path = back_path + '/' + result_id
-    base_path_assets = base_path + '/assets'
-    os.mkdir(base_path)
-    os.mkdir(base_path_assets)
+    # # Create images for solana
+    # base_path = back_path + '/' + result_id
+    # base_path_assets = base_path + '/assets'
+    # os.mkdir(base_path)
+    # os.mkdir(base_path_assets)
 
-    for i in range(event.amount):
-        f = open(f'{base_path_assets}/{i}.json', "a")
-        f.write(f'{{\n	"name": "Ticket {i}",\n	"symbol": "TCKT",\n	"description": "Collection of {event.amount} tickets",\n	"image": "{i}.png",\n	"attributes": [],\n	"properties": {{\n		"files": [\n			{{\n				"uri": "{i}.png",\n				"type": "image/png"\n			}}\n		]\n	}}\n}}\n')
-        f.close()
+    # for i in range(event.amount):
+    #     f = open(f'{base_path_assets}/{i}.json', "a")
+    #     f.write(f'{{\n	"name": "Ticket {i}",\n	"symbol": "TCKT",\n	"description": "Collection of {event.amount} tickets",\n	"image": "{i}.png",\n	"attributes": [],\n	"properties": {{\n		"files": [\n			{{\n				"uri": "{i}.png",\n				"type": "image/png"\n			}}\n		]\n	}}\n}}\n')
+    #     f.close()
 
-        await getTxt2Img(text=event.name, steps="20", load=False, filename=f"{result_id}/assets/{i}.png")
+    #     await getTxt2Img(text=event.name, steps="20", load=False, filename=f"{result_id}/assets/{i}.png")
 
-    # Create collection cover
-    f = open(f'{base_path_assets}/collection.json', "a")
-    f.write(f'{{\n	"name": "Tickets Collection",\n	"symbol": "TCKT",\n	"description": "Collection of {event.amount} tickets",\n	"image": "collection.png",\n	"attributes": [],\n	"properties": {{\n		"files": [\n			{{\n				"uri": "collection.png",\n				"type": "image/png"\n			}}\n		]\n	}}\n}}\n')
-    f.close()
-    await getTxt2Img(text=f'{event.name} collection', steps="20", load=False, filename=f"{result_id}/assets/collection.png")
+    # # Create collection cover
+    # f = open(f'{base_path_assets}/collection.json', "a")
+    # f.write(f'{{\n	"name": "Tickets Collection",\n	"symbol": "TCKT",\n	"description": "Collection of {event.amount} tickets",\n	"image": "collection.png",\n	"attributes": [],\n	"properties": {{\n		"files": [\n			{{\n				"uri": "collection.png",\n				"type": "image/png"\n			}}\n		]\n	}}\n}}\n')
+    # f.close()
+    # await getTxt2Img(text=f'{event.name} collection', steps="20", load=False, filename=f"{result_id}/assets/collection.png")
 
-    # Create collection config
-    f = open(f'{base_path}/config.json', "a")
-    pinata_access_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiI5Yzg0MGE3MC0zN2M4LTQ2MzktOWEyYi00ZjA5MDk5NWFjODciLCJlbWFpbCI6ImlseWFtZWRAcm8ucnUiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwicGluX3BvbGljeSI6eyJyZWdpb25zIjpbeyJpZCI6IkZSQTEiLCJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MX0seyJpZCI6Ik5ZQzEiLCJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MX1dLCJ2ZXJzaW9uIjoxfSwibWZhX2VuYWJsZWQiOmZhbHNlLCJzdGF0dXMiOiJBQ1RJVkUifSwiYXV0aGVudGljYXRpb25UeXBlIjoic2NvcGVkS2V5Iiwic2NvcGVkS2V5S2V5IjoiM2U5M2YzY2Y4ZWY3ZTRlY2Y2Y2UiLCJzY29wZWRLZXlTZWNyZXQiOiI0NTE2YTlmMjYyZTdhYTNjMDMwNGJjZDM3MjIxOGRhMTc5ZWJhYjNiOTc2NWIxNDMyZWQxYTE0NWFmYzQwOTlmIiwiaWF0IjoxNjc2NzI0MTA4fQ._1Cus09qFl3XteBKL3qyL14-mAA0XH455XBM-uZypSs"
-    f.write(f'{{\n	"price": 0,\n	"number": {event.amount},\n	"sellerFeeBasisPoints": 0,\n	"symbol": "TCKT",\n	"isMutable": true,\n	"isSequential": false,\n	"creators": [\n		{{\n			"address": "{solana_addr}",\n			"share": 100\n		}}\n	],\n	"uploadMethod": "pinata",\n	"awsConfig": null,\n	"nftStorageAuthToken": null,\n	"shdwStorageAccount": null,\n	"pinataConfig": {{\n		"jwt": "{pinata_access_token}",\n		"apiGateway": "https://api.pinata.cloud",\n		"contentGateway": "https://gateway.pinata.cloud",\n		"parallelLimit": 1\n	}},\n	"hiddenSettings": null,\n	"retainAuthority": true,\n	"guards": null\n}}\n\n')
-    f.close()
+    # # Create collection config
+    # f = open(f'{base_path}/config.json', "a")
+    # pinata_access_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiI5Yzg0MGE3MC0zN2M4LTQ2MzktOWEyYi00ZjA5MDk5NWFjODciLCJlbWFpbCI6ImlseWFtZWRAcm8ucnUiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwicGluX3BvbGljeSI6eyJyZWdpb25zIjpbeyJpZCI6IkZSQTEiLCJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MX0seyJpZCI6Ik5ZQzEiLCJkZXNpcmVkUmVwbGljYXRpb25Db3VudCI6MX1dLCJ2ZXJzaW9uIjoxfSwibWZhX2VuYWJsZWQiOmZhbHNlLCJzdGF0dXMiOiJBQ1RJVkUifSwiYXV0aGVudGljYXRpb25UeXBlIjoic2NvcGVkS2V5Iiwic2NvcGVkS2V5S2V5IjoiM2U5M2YzY2Y4ZWY3ZTRlY2Y2Y2UiLCJzY29wZWRLZXlTZWNyZXQiOiI0NTE2YTlmMjYyZTdhYTNjMDMwNGJjZDM3MjIxOGRhMTc5ZWJhYjNiOTc2NWIxNDMyZWQxYTE0NWFmYzQwOTlmIiwiaWF0IjoxNjc2NzI0MTA4fQ._1Cus09qFl3XteBKL3qyL14-mAA0XH455XBM-uZypSs"
+    # f.write(f'{{\n	"price": 0,\n	"number": {event.amount},\n	"sellerFeeBasisPoints": 0,\n	"symbol": "TCKT",\n	"isMutable": true,\n	"isSequential": false,\n	"creators": [\n		{{\n			"address": "{solana_addr}",\n			"share": 100\n		}}\n	],\n	"uploadMethod": "pinata",\n	"awsConfig": null,\n	"nftStorageAuthToken": null,\n	"shdwStorageAccount": null,\n	"pinataConfig": {{\n		"jwt": "{pinata_access_token}",\n		"apiGateway": "https://api.pinata.cloud",\n		"contentGateway": "https://gateway.pinata.cloud",\n		"parallelLimit": 1\n	}},\n	"hiddenSettings": null,\n	"retainAuthority": true,\n	"guards": null\n}}\n\n')
+    # f.close()
 
-    # Publish collection
-    os.system(f'sh -c "cd {base_path} && sugar validate && sugar upload && sugar deploy"')
+    # # Publish collection
+    # os.system(f'sh -c "cd {base_path} && sugar validate && sugar upload && sugar deploy"')
 
-    db.events.find_one_and_update({'_id': ObjectId(result_id)}, {'$set': {'cover': f'/img/{result_id}/assets/collection.png'}})
+    # db.events.find_one_and_update({'_id': ObjectId(result_id)}, {'$set': {'cover': f'/img/{result_id}/assets/collection.png'}})
+    result = await create_new_event(event)
 
-    return {"id": str(result_id)}
+    return {"id": str(result)}
 
 
 @app.get('/api/event', tags=['events'])
