@@ -6,4 +6,5 @@ class Ticket(BaseModel):
     user_id: str
     event_id: str
     url: str | None
+    mint: str | None
     for_sell: bool | None

@@ -416,7 +416,7 @@ def create_ticket(ticket: Ticket):
     data = json.load(f)
 
     ticket.url = data['items'][str(event['minted'])]['image_link']
-    db.tickets.insert_one(jsonable_encoder(ticket))
+
     print(data['items'][str(event['minted'])])
 
     f.close()
@@ -433,6 +433,8 @@ def create_ticket(ticket: Ticket):
     print(tt)
     
     if (len(tt) > 0):
+        ticket.mint = tt[0]["mint"]
+        db.tickets.insert_one(jsonable_encoder(ticket))
         return tt[0]
     else:
         return "No changes"
