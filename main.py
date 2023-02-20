@@ -36,7 +36,7 @@ UU = []
 UU.append(1)
 sec = Secret(_time=18,_symbols=8)
 check_arr = []
-URL = "https://9302-193-41-142-48.ngrok.io"
+URL = " https://e876-193-41-142-48.ngrok.io"
 
 back_path = path.abspath(path.join(__file__, "../")
                          ).replace("\\", "/") + '/zero_images'
