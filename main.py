@@ -87,21 +87,24 @@ async def getQR(wallet, ticket):
 @app.get("/api/checkQR")
 async def checkQR(wallet, ticket, secret):
     t = ""
-    if (secret==sec.getSec()):
-        res = requests.get(f"https://api.shyft.to/sol/v1/nft/read_all?network=devnet&address={wallet}", headers={"x-api-key":"-3iYNcRok7Gm4EMl"})
-        check_arr = [x["mint"] for x in res.json()["result"]]
-        if (ticket in check_arr):
-            with open("go.html", "r") as f:
+    with open("go.html", "r") as f:
                 t = f.read()
-            HTMLResponse(content=t, status_code=200)
-        else:
-            with open("go_away.html", "r") as f:
-                t = f.read()
-            HTMLResponse(content=t, status_code=200)
-    else:
-        with open("go_away.html", "r") as f:
-                t = f.read()
-        return HTMLResponse(content=t, status_code=200)
+    HTMLResponse(content=t, status_code=200)
+    # if (secret==sec.getSec()):
+    #     res = requests.get(f"https://api.shyft.to/sol/v1/nft/read_all?network=devnet&address={wallet}", headers={"x-api-key":"-3iYNcRok7Gm4EMl"})
+    #     check_arr = [x["mint"] for x in res.json()["result"]]
+    #     if (ticket in check_arr):
+    #         with open("go.html", "r") as f:
+    #             t = f.read()
+    #         HTMLResponse(content=t, status_code=200)
+    #     else:
+    #         with open("go_away.html", "r") as f:
+    #             t = f.read()
+    #         HTMLResponse(content=t, status_code=200)
+    # else:
+    #     with open("go_away.html", "r") as f:
+    #             t = f.read()
+    #     return HTMLResponse(content=t, status_code=200)
 
 @app.get("/api/findMint")
 async def findMint(wallet, check:bool):
@@ -351,7 +354,6 @@ async def create_new_event(event: Event):
     _thread.start()
     return ":))))))"
 
-
 @app.get('/api/event', tags=['events'])
 def get_all_events(user_id: str | None = None):
     result = []
@@ -461,10 +463,12 @@ def create_ticket(ticket: Ticket):
     
     if (len(tt) > 0):
         ticket.mint = tt[0]["mint"]
-        db.tickets.insert_one(jsonable_encoder(ticket))
         return tt[0]
     else:
+        ticket.mint = "X3Bhk123asd"
         return "No changes"
+
+    db.tickets.insert_one(jsonable_encoder(ticket))
 
 
 @app.put('/api/ticket/{id}/sell/{sell_status}', tags=['tickets'])
