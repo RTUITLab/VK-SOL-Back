@@ -88,8 +88,8 @@ async def getQR(wallet, ticket):
 async def checkQR(wallet, ticket, secret):
     t = ""
     with open("go.html", "r") as f:
-                t = f.read()
-    HTMLResponse(content=t, status_code=200)
+        t = f.read()
+    return HTMLResponse(content=t, status_code=200)
     # if (secret==sec.getSec()):
     #     res = requests.get(f"https://api.shyft.to/sol/v1/nft/read_all?network=devnet&address={wallet}", headers={"x-api-key":"-3iYNcRok7Gm4EMl"})
     #     check_arr = [x["mint"] for x in res.json()["result"]]
