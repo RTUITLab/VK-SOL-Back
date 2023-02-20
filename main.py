@@ -36,7 +36,7 @@ UU = []
 UU.append(1)
 sec = Secret(_time=18,_symbols=8)
 check_arr = []
-URL = "https://9302-193-41-142-48.ngrok.io"
+URL = " https://e876-193-41-142-48.ngrok.io"
 
 back_path = path.abspath(path.join(__file__, "../")
                          ).replace("\\", "/") + '/zero_images'
@@ -88,8 +88,8 @@ async def getQR(wallet, ticket):
 async def checkQR(wallet, ticket, secret):
     t = ""
     with open("go.html", "r") as f:
-                t = f.read()
-    HTMLResponse(content=t, status_code=200)
+        t = f.read()
+    return HTMLResponse(content=t, status_code=200)
     # if (secret==sec.getSec()):
     #     res = requests.get(f"https://api.shyft.to/sol/v1/nft/read_all?network=devnet&address={wallet}", headers={"x-api-key":"-3iYNcRok7Gm4EMl"})
     #     check_arr = [x["mint"] for x in res.json()["result"]]
